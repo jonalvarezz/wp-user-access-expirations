@@ -152,7 +152,7 @@ class UserAccessExpiration
 				// change the custom user meta to show access is now denied
 				update_user_meta( $user_info->ID, self::user_meta, 'true' );
 				// register a new error with the error message set above
-				$user = new WP_Error( 'access_denied', __( '<strong>Your access to the site has expired.</strong><br>'.$options['error_message'] ) );
+				$user = new WP_Error( 'access_denied', __( '<strong>Su acceso al sitio ha expirado</strong><br>'.$options['error_message'] ) );
 				// deny access to login and send back to login page
 				remove_action( 'authenticate', 'wp_authenticate_username_password', 20 );
 			}
