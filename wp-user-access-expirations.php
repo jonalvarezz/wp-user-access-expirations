@@ -16,7 +16,11 @@ class UserAccessExpiration
 	CONST option_name = "user_access_expire_options";
 	// the custom user meta key
 	CONST user_meta = 'uae_user_access_expired';
-	
+	// custom user meta key to handle operations with expired dates
+	CONST user_meta_expire_date = 'uae_user_access_expired_date';
+	// custom user meta key to control the number of notifications sent
+	CONST user_meta_expire_count = 'uae_user_notification_count';
+
 	// hook into user registration and authentication
 	public function __construct()
 	{
@@ -46,14 +50,24 @@ class UserAccessExpiration
 	 */
 	public function activation()
 	{
+		// get settings
+		$options = get_option( self::option_name );
 		// limit user data returned to just the id
-		$args = array( 'fields' => 'ID' );
+		$args = array( 'fields' => array( 'ID', 'user_registered' ) );
 		$users = get_users( $args );
 		// loop through each user
 		foreach ( $users as $user )
 		{
 			// add the custom user meta to the wp_usermeta table
-			add_user_meta( $user, self::user_meta, 'false' );
+			add_user_meta( $user->ID, self::user_meta, 'false' );
+
+			// add expire date to get easily from a WP_User_Query
+			$reg_date = strtotime( $user->user_registered );
+			$expire_date = date( 'Y-m-d H:i:s', strtotime( '+'.$options['number_days'].'days', $reg_date ) );
+			add_user_meta( $user->ID, self::user_meta_expire_date, ''.$expire_date );
+
+			// initialice notification count
+			add_user_meta( $user->ID, self::user_meta_expire_count, '0' );	
 		}
 		
 		// add option with base information
@@ -215,6 +229,18 @@ class UserAccessExpiration
 				'function' => 'setting_error_message',
 				'section' => 'primary_section'
 			),
+			array(
+				'id' => 'notify_days',
+				'title' => 'Notify message number of days',
+				'function' => 'setting_notify_days',
+				'section' => 'primary_section'
+			),
+			array(
+				'id' => 'notify_text',
+				'title' => 'Notify Message',
+				'function' => 'setting_notify_text',
+				'section' => 'primary_section'
+			),
 		);
 		
 		foreach( $settings_fields as $settings )
@@ -275,6 +301,29 @@ class UserAccessExpiration
 		echo "<br>This message is displayed to a user once their access is denied.";
 		echo "<br><b>Example:</b> To gain access please contact us at myemail@myexample.com.";	
 	}
+
+	/** 
+	 *	Expire Notify
+	 *
+	 *	Provides fields to allow administrators to set a the amount of days and the text within a expire
+	 *  notification message should be sent via email to the user.
+	 *
+	 *	@author		jonalvarezz
+	 *	@since		0.2
+	 */
+	public function setting_notify_days()
+	{
+		$options = get_option( self::option_name );
+		echo "<input id='notify_days' name='user_access_expire_options[notify_days]' type='number' size='10' value='{$options['notify_days']}' />";
+		echo "<span> days left.</span><br>";	
+		echo "<br>How many days left a notification message should be sent to the user";
+	}
+	public function setting_notify_text()
+	{
+		$options = get_option( self::option_name );
+		echo "<textarea id='notify_text' name='user_access_expire_options[notify_text]' rows='6' cols='75'>{$options['notify_text']}</textarea>";
+		echo "<br>This is the message the user will receive";	
+	}
 	
 	/** 
 	 *	Validate and Clean Options
@@ -291,6 +340,9 @@ class UserAccessExpiration
 		$valid_input['error_message'] =  wp_filter_nohtml_kses( $input['error_message'] );
 		$input['number_days'] =  trim( $input['number_days'] );
 		$valid_input['number_days'] = ( is_numeric( $input['number_days'] ) ) ? $input['number_days'] : '';
+
+		$valid_input['notify_text'] = $input['notify_text'];
+		$valid_input['notify_days'] = $input['notify_days'];
 		
 		if ( is_numeric( $input['number_days'] ) == FALSE )
 		{
