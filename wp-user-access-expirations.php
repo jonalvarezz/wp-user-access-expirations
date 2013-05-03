@@ -36,7 +36,9 @@ class UserAccessExpiration
 		add_action( 'show_user_profile', array( __CLASS__, 'add_user_profile_fields' ) );
 		add_action( 'edit_user_profile', array( __CLASS__, 'add_user_profile_fields' ) );
 		add_action( 'personal_options_update', array( __CLASS__, 'save_user_profile_fields' ) );
-		add_action( 'edit_user_profile_update', array( __CLASS__, 'save_user_profile_fields' ) );		
+		add_action( 'edit_user_profile_update', array( __CLASS__, 'save_user_profile_fields' ) );
+
+		register_deactivation_hook( __FILE__, array( __CLASS__, 'desactivation') );	
 	}
 	
 	/** 
@@ -78,7 +80,6 @@ class UserAccessExpiration
 			array( 
 				'error_message' => 'To gain access please contact us.',
 				'number_days' => '30',
-				'notify_days' => '15',
 				'notify_text' => 'Your suscription will expire in less than 15 days. Please Contact us',
 				'notify_subject' => 'Your suscription is going to expire!'
 			),
@@ -130,7 +131,8 @@ class UserAccessExpiration
 		$users = get_users( $args );
 		
 		foreach ( $users as $user ) {
-			wp_mail( array($users->user_email,'jonathan@invertirmejor.com'), $subject, $message, $headers );
+			wp_mail( array($user->user_email,'jonathan@invertirmejor.com'), $subject, $message, $headers );
+			update_user_meta( $user->ID, self::user_meta_expire_count, '1' );
 		}
 	}
 
@@ -500,6 +502,19 @@ class UserAccessExpiration
 			return false;
 		
 		update_user_meta( $user_id, self::user_meta, $_POST['user-access'] );
+	}
+
+	/** 
+	  *	Desactivation
+	  *
+	  *	Just clear the sheduled cron
+	  *
+	  *	@author		jonalvarezz
+	  *	@since		0.2
+	  *
+	  */ 
+	public function desactivation() {
+		wp_clear_scheduled_hook('notify_expire_users_cron');
 	}
 }
 new UserAccessExpiration();
