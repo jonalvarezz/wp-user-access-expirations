@@ -75,7 +75,9 @@ class UserAccessExpiration
 			self::option_name, 
 			array( 
 				'error_message' => 'To gain access please contact us.',
-				'number_days' => '30'
+				'number_days' => '30',
+				'notify_days' => '15',
+				'notify_text' => 'Your suscription will expire in less than 15 days. Please Contact us'
 			),
 			'',
 			'yes'
