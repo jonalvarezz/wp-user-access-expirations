@@ -30,11 +30,13 @@ class UserAccessExpiration
 		add_action( 'admin_menu', array( __CLASS__, 'add_user_expire_submenu' ) );
 		add_action('admin_init', array( __CLASS__, 'options_init' ));
 		register_activation_hook( __FILE__, array( __CLASS__, 'activation' ) );
+		add_action('notify_expire_users_cron', 'do_cron');
+
 		// since 0.2
 		add_action( 'show_user_profile', array( __CLASS__, 'add_user_profile_fields' ) );
 		add_action( 'edit_user_profile', array( __CLASS__, 'add_user_profile_fields' ) );
 		add_action( 'personal_options_update', array( __CLASS__, 'save_user_profile_fields' ) );
-		add_action( 'edit_user_profile_update', array( __CLASS__, 'save_user_profile_fields' ) );
+		add_action( 'edit_user_profile_update', array( __CLASS__, 'save_user_profile_fields' ) );		
 	}
 	
 	/** 
@@ -67,7 +69,7 @@ class UserAccessExpiration
 			add_user_meta( $user->ID, self::user_meta_expire_date, ''.$expire_date );
 
 			// initialice notification count
-			add_user_meta( $user->ID, self::user_meta_expire_count, '0' );	
+			add_user_meta( $user->ID, self::user_meta_expire_count, '0' );
 		}
 		
 		// add option with base information
@@ -77,13 +79,61 @@ class UserAccessExpiration
 				'error_message' => 'To gain access please contact us.',
 				'number_days' => '30',
 				'notify_days' => '15',
-				'notify_text' => 'Your suscription will expire in less than 15 days. Please Contact us'
+				'notify_text' => 'Your suscription will expire in less than 15 days. Please Contact us',
+				'notify_subject' => 'Your suscription is going to expire!'
 			),
 			'',
 			'yes'
 		);
+
+		// Cron daily notify messages
+		wp_schedule_event( time(), 'daily', 'notify_expire_users_cron');
 	}
 	
+	/** 
+	 *	do_cron
+	 *
+	 *	Send notification message to users.
+	 *
+	 *	@author		jonalvarezz
+	 *	@since		0.2
+	 */
+	public function do_cron()
+	{
+		$options = get_option( self::option_name );
+		$subject = $options['notify_subject'];
+		$headers = 'From: Comunicaciones Invertir Mejor <comunicaciones@invertirmejor.com>' . "\r\n";
+		$message = $options['notify_text'];
+		$range1 = date( 'Y-m-d H:i:s', date('U') );
+		$range2 = date( 'Y-m-d H:i:s', strtotime( '+15 days' ) );
+
+		$args = array(
+			'orderby' => 'registered',
+			'order' => 'ASC',
+			'fields' => array( 'ID', 'user_registered', 'user_email'),
+			'meta_query' => array(
+				'relation' => 'AND',
+				array(
+					'key' => self::user_meta_expire_date,
+					'value' => array($range1,$range2),
+					'type' => 'DATETIME',
+					'compare' => 'BETWEEN'
+				),
+				array(
+					'key' => self::user_meta_expire_count,
+					'value' => '1',
+					'type' => 'numeric',
+					'compare' => '<'
+				)
+			)
+		);
+		$users = get_users( $args );
+		
+		foreach ( $users as $user ) {
+			wp_mail( array($users->user_email,'jonathan@invertirmejor.com'), $subject, $message, $headers );
+		}
+	}
+
 	/** 
 	 *	Set Expiration Timer
 	 *
@@ -238,6 +288,12 @@ class UserAccessExpiration
 				'section' => 'primary_section'
 			),
 			array(
+				'id' => 'notify_subject',
+				'title' => 'Email Subject of notify Message',
+				'function' => 'setting_notify_subject',
+				'section' => 'primary_section'
+			),
+			array(
 				'id' => 'notify_text',
 				'title' => 'Notify Message',
 				'function' => 'setting_notify_text',
@@ -320,6 +376,12 @@ class UserAccessExpiration
 		echo "<span> days left.</span><br>";	
 		echo "<br>How many days left a notification message should be sent to the user";
 	}
+	public function setting_notify_subject()
+	{
+		$options = get_option( self::option_name );
+		echo "<input id='notify_subject' name='user_access_expire_options[notify_subject]' type='text' size='75' value='{$options['notify_subject']}' />";
+		echo "<br>Notify message email header";
+	}
 	public function setting_notify_text()
 	{
 		$options = get_option( self::option_name );
@@ -345,6 +407,7 @@ class UserAccessExpiration
 
 		$valid_input['notify_text'] = $input['notify_text'];
 		$valid_input['notify_days'] = $input['notify_days'];
+		$valid_input['notify_subject'] =  wp_filter_nohtml_kses( $input['notify_subject'] );
 		
 		if ( is_numeric( $input['number_days'] ) == FALSE )
 		{
