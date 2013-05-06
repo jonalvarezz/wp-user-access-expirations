@@ -140,6 +140,42 @@ class UserAccessExpiration
 	}
 
 	/** 
+	 *	Update the user expire date meta
+	 *
+	 *	Update the user meta expiry date. Sometimes some users are created via a CSV files
+	 *  their registering date can be modified.
+	 *
+	 *  Update just the user that has never receive a notify message.
+	 *
+	 *	@author		jonalvarezz
+	 *	@since		0.2
+	 *
+	 *	@param	array  $users
+	 */
+	function update_expiry_date() {
+		$args = array(
+			'orderby' => 'registered',
+			'order' => 'ASC',
+			'fields' => array( 'ID', 'user_registered', 'user_email'),
+			'meta_query' => array(
+				array(
+					'key' => self::user_meta_expire_count,
+					'value' => '1',
+					'type' => 'numeric',
+					'compare' => '<'
+				)
+			)
+		);
+		$users = get_users( $args );
+
+		foreach ($users as $user ) {
+			$reg_date = strtotime( $user->user_registered );
+			$expire_date = date( 'Y-m-d H:i:s', strtotime( '+'.$options['number_days'].'days', $reg_date ) );
+			update_user_meta( $user->ID, self::user_meta_expire_date, ''.$expire_date );			
+		}
+	}
+
+	/** 
 	 *	Set Expiration Timer
 	 *
 	 *	Adds a custom user meta key of user_access_expired when a new user is registered.
