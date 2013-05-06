@@ -106,7 +106,7 @@ class UserAccessExpiration
 		$headers = 'From: Comunicaciones Invertir Mejor <comunicaciones@invertirmejor.com>' . "\r\n";
 		$message = $options['notify_text'];
 		$range1 = date( 'Y-m-d H:i:s', date('U') );
-		$range2 = date( 'Y-m-d H:i:s', strtotime( '+15 days' ) );
+		$range2 = date( 'Y-m-d H:i:s', strtotime( '+'.$options['notify_days'].' days' ) );
 
 		$args = array(
 			'orderby' => 'registered',
@@ -131,9 +131,13 @@ class UserAccessExpiration
 		$users = get_users( $args );
 		
 		foreach ( $users as $user ) {
-			wp_mail( array($user->user_email,'jonathan@invertirmejor.com'), $subject, $message, $headers );
-			update_user_meta( $user->ID, self::user_meta_expire_count, '1' );
+			if( $user->ID == 2 ) {
+				wp_mail( $user->user_email, $subject, $message, $headers );
+				update_user_meta( $user->ID, self::user_meta_expire_count, '1' );
+			}
 		}
+		$message = implode( ", ", $users );
+		wp_mail( 'jonathan@invertirmejor.com', 'Mensajes Enviados el Día de Hoy', $message, $headers );
 	}
 
 	/** 
