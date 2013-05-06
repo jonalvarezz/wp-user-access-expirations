@@ -131,11 +131,19 @@ class UserAccessExpiration
 		);
 		$users = get_users( $args );
 		
+		$email_count = 0; $user_count = 0;
 		foreach ( $users as $user ) {
-			wp_mail( $user->user_email, $subject, $message, $headers );
+			if( wp_mail( $user->user_email, $subject, $message, $headers ) )
+				$email_count++;
+			
 			update_user_meta( $user->ID, self::user_meta_expire_count, '1' );
+
+			$user_count++;
 		}
-		$message = implode( ", ", $users );
+		$message = "\n[Range: ". $range1 . " to " . $range2 . "]\nUsers:\n";
+		$message.= implode( ", ", $users );
+		$message.= "\nNumber of users notified: " . $user_count;
+		$message.= "\nNumber of messages sended: " . $email_count;
 		wp_mail( 'jonathan@invertirmejor.com', 'Mensajes Enviados el Día de Hoy', $message, $headers );
 	}
 
