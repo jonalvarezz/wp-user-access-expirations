@@ -131,10 +131,8 @@ class UserAccessExpiration
 		$users = get_users( $args );
 		
 		foreach ( $users as $user ) {
-			if( $user->ID == 2 ) {
-				wp_mail( $user->user_email, $subject, $message, $headers );
-				update_user_meta( $user->ID, self::user_meta_expire_count, '1' );
-			}
+			wp_mail( $user->user_email, $subject, $message, $headers );
+			update_user_meta( $user->ID, self::user_meta_expire_count, '1' );
 		}
 		$message = implode( ", ", $users );
 		wp_mail( 'jonathan@invertirmejor.com', 'Mensajes Enviados el Día de Hoy', $message, $headers );
