@@ -80,6 +80,7 @@ class UserAccessExpiration
 			array( 
 				'error_message' => 'To gain access please contact us.',
 				'number_days' => '30',
+				'notify_days' => '5',
 				'notify_text' => 'Your suscription will expire in less than 15 days. Please Contact us',
 				'notify_subject' => 'Your suscription is going to expire!'
 			),
