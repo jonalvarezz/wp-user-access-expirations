@@ -131,7 +131,8 @@ class UserAccessExpiration
 		);
 		$users = get_users( $args );
 				
-		$user_notified = $user_notified_fail = [];
+		$user_notified = [];
+		$user_notified_fail = [];
 		foreach ( $users as $user ) {
 			if( wp_mail( $user->user_email, $subject, $message, $headers ) ) {
 				update_user_meta( $user->ID, self::user_meta_expire_count, '1' );
