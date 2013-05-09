@@ -155,7 +155,7 @@ class UserAccessExpiration
 		$message.= "\n\n";
 		$message.= "The following " . $count($user_notified_fail) . " messages fail on sent:\n";
 		$message.= implode(',', $user_notified_fail);
-		wp_mail( bloginfo('admin_email'), '[User Expire] Mensajes Enviados el Día de Hoy', $message, $headers );
+		wp_mail( get_bloginfo('admin_email'), '[User Expire] Mensajes Enviados el Día de Hoy', $message, $headers );
 	}
 
 	/** 
