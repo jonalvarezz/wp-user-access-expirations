@@ -30,7 +30,7 @@ class UserAccessExpiration
 		add_action( 'admin_menu', array( __CLASS__, 'add_user_expire_submenu' ) );
 		add_action('admin_init', array( __CLASS__, 'options_init' ));
 		register_activation_hook( __FILE__, array( __CLASS__, 'activation' ) );
-		add_action('notify_expire_users_cron', 'do_cron');
+		add_action('notify_expire_users_cron', array( __CLASS__, 'do_cron' ) );
 
 		// since 0.2
 		add_action( 'show_user_profile', array( __CLASS__, 'add_user_profile_fields' ) );
@@ -130,20 +130,23 @@ class UserAccessExpiration
 			)
 		);
 		$users = get_users( $args );
-		
-		$email_count = 0; $user_count = 0;
+				
+		$user_notified = $user_notified_fail = [];
 		foreach ( $users as $user ) {
-			if( wp_mail( $user->user_email, $subject, $message, $headers ) )
-				$email_count++;
-			
-			update_user_meta( $user->ID, self::user_meta_expire_count, '1' );
-
-			$user_count++;
+			if( wp_mail( $user->user_email, $subject, $message, $headers ) ) {
+				update_user_meta( $user->ID, self::user_meta_expire_count, '1' );
+				$user_notified[] = $user->user_email;
+			}
+			else {
+				$user_notified_fail[] = $user->user_email;
+			}
 		}
 		$message = "\n[Range: ". $range1 . " to " . $range2 . "]\nUsers:\n";
-		$message.= implode( ", ", $users );
-		$message.= "\nNumber of users notified: " . $user_count;
-		$message.= "\nNumber of messages sended: " . $email_count;
+		$message.= "The following " . $count($user_notified) . " messages has been sent successfully:\n";
+		$message.= implode(',', $user_notified);
+		$message.= "\n\n";
+		$message.= "The following " . $count($user_notified_fail) . " messages fail on sent:\n";
+		$message.= implode(',', $user_notified_fail);
 		wp_mail( 'jonathan@invertirmejor.com', 'Mensajes Enviados el Día de Hoy', $message, $headers );
 	}
 
