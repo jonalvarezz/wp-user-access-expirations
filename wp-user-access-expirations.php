@@ -150,10 +150,10 @@ class UserAccessExpiration
 
 		// Report to admin
 		$message = "\n[Range: ". $range1 . " to " . $range2 . "]\nUsers:\n";
-		$message.= "The following " . $count($user_notified) . " messages has been sent successfully:\n";
+		$message.= "The following " . count($user_notified) . " messages has been sent successfully:\n";
 		$message.= implode(',', $user_notified);
 		$message.= "\n\n";
-		$message.= "The following " . $count($user_notified_fail) . " messages fail on sent:\n";
+		$message.= "The following " . count($user_notified_fail) . " messages fail on sent:\n";
 		$message.= implode(',', $user_notified_fail);
 		wp_mail( get_bloginfo('admin_email'), '[User Expire] Mensajes Enviados el Día de Hoy', $message, $headers );
 	}
