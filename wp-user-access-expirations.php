@@ -134,12 +134,17 @@ class UserAccessExpiration
 		$user_notified = array();
 		$user_notified_fail = array();
 		foreach ( $users as $user ) {
-			if( wp_mail( $user->user_email, $subject, $message, $headers ) ) {
-				update_user_meta( $user->ID, self::user_meta_expire_count, '1' );
-				$user_notified[] = $user->user_email;
+			if( $user->user_email == 'soporte@invertirmejor.com') {
+					if( wp_mail( $user->user_email, $subject, $message, $headers ) ) {
+					update_user_meta( $user->ID, self::user_meta_expire_count, '1' );
+					$user_notified[] = $user->user_email;
+				}
+				else {
+					$user_notified_fail[] = $user->user_email;
+				}
 			}
 			else {
-				$user_notified_fail[] = $user->user_email;
+				$user_notified[] = $user->user_email;
 			}
 		}
 
