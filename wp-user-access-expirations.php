@@ -323,6 +323,30 @@ class UserAccessExpiration
 				'function' => 'setting_notify_text',
 				'section' => 'primary_section'
 			),
+			array(
+				'id' => 'welcome_activate',
+				'title' => 'Activate welcome message',
+				'function' => 'setting_welcome_activate',
+				'section' => 'primary_section'
+			),
+			array(
+				'id' => 'welcome_days',
+				'title' => 'Welcome message number of days',
+				'function' => 'setting_welcome_days',
+				'section' => 'primary_section'
+			),
+			array(
+				'id' => 'welcome_subject',
+				'title' => 'Subject for the welcome message',
+				'function' => 'setting_welcome_subject',
+				'section' => 'primary_section'
+			),
+			array(
+				'id' => 'welcome_text',
+				'title' => 'Welcome message',
+				'function' => 'setting_welcome_text',
+				'section' => 'primary_section'
+			),
 		);
 		
 		foreach( $settings_fields as $settings )
@@ -395,7 +419,7 @@ class UserAccessExpiration
 	 */
 	public function setting_notify_days()
 	{
-		$options = get_option( self::option_name );
+		$options = get_option( self::option_name );		
 		echo "<input id='notify_days' name='user_access_expire_options[notify_days]' type='number' size='10' value='{$options['notify_days']}' />";
 		echo "<span> days left.</span><br>";	
 		echo "<br>How many days left a notification message should be sent to the user";
@@ -410,6 +434,41 @@ class UserAccessExpiration
 	{
 		$options = get_option( self::option_name );
 		echo "<textarea id='notify_text' name='user_access_expire_options[notify_text]' rows='6' cols='75'>{$options['notify_text']}</textarea>";
+		echo "<br>This is the message the user will receive";	
+	}
+
+	/** 
+	 *	Welcome Notify
+	 *
+	 *	Provides fields to allow administrators to set a the amount of days and the text within a welcome
+	 *  notification message should be sent via email to the user.
+	 *
+	 *	@author		jonalvarezz
+	 *	@since		0.3
+	 */
+	public function setting_welcome_activate()
+	{
+		$options = get_option( self::option_name );
+		echo "<input type='checkbox' id='welcome_activate' name='user_access_expire_options[welcome_activate]'>{$options['welcome_activate']}</input> ";
+		echo "<span>Enable the welcome message notification to new users</span>";	
+	}
+	public function setting_welcome_days()
+	{
+		$options = get_option( self::option_name );		
+		echo "<input id='welcome_days' name='user_access_expire_options[welcome_days]' type='number' size='10' value='{$options['welcome_days']}' />";
+		echo "<span> days after registration</span><br>";	
+		echo "<br>Number of days after registration a user should receive the welcome message";
+	}
+	public function setting_welcome_subject()
+	{
+		$options = get_option( self::option_name );
+		echo "<input id='welcome_subject' name='user_access_expire_options[welcome_subject]' type='text' size='75' value='{$options['welcome_subject']}' />";
+		echo "<br>Welcome message email header";
+	}
+	public function setting_welcome_text()
+	{
+		$options = get_option( self::option_name );
+		echo "<textarea id='welcome_text' name='user_access_expire_options[welcome_text]' rows='6' cols='75'>{$options['welcome_text']}</textarea>";
 		echo "<br>This is the message the user will receive";	
 	}
 	
