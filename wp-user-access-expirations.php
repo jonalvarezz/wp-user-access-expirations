@@ -449,8 +449,8 @@ class UserAccessExpiration
 	public function setting_welcome_activate()
 	{
 		$options = get_option( self::option_name );
-		echo "<input type='checkbox' id='welcome_activate' name='user_access_expire_options[welcome_activate]'>{$options['welcome_activate']}</input> ";
-		echo "<span>Enable the welcome message notification to new users</span>";	
+		$checked = $options['welcome_activate'] == 'on' ? 'checked' : '';
+		echo "<input type='checkbox' ". $checked ." id='welcome_activate' name='user_access_expire_options[welcome_activate]'>";
 	}
 	public function setting_welcome_days()
 	{
@@ -488,9 +488,19 @@ class UserAccessExpiration
 		$input['number_days'] =  trim( $input['number_days'] );
 		$valid_input['number_days'] = ( is_numeric( $input['number_days'] ) ) ? $input['number_days'] : '';
 
+		// Expiry notification
 		$valid_input['notify_text'] = $input['notify_text'];
-		$valid_input['notify_days'] = $input['notify_days'];
 		$valid_input['notify_subject'] =  wp_filter_nohtml_kses( $input['notify_subject'] );
+		$input['notify_days'] = trim($input['notify_days']);		
+		$valid_input['notify_days'] = ( is_numeric( $input['notify_days'] ) ) ? $input['notify_days'] : '';
+
+		//Welcome notification
+		$valid_input['welcome_activate'] = $input['welcome_activate'];
+		$valid_input['welcome_text'] = $input['welcome_text'];
+		$valid_input['welcome_subject'] =  wp_filter_nohtml_kses( $input['welcome_subject'] );
+		$input['welcome_days'] = trim($input['welcome_days']);		
+		$valid_input['welcome_days'] = ( is_numeric( $input['welcome_days'] ) ) ? $input['welcome_days'] : '';
+		
 		
 		if ( is_numeric( $input['number_days'] ) == FALSE )
 		{
