@@ -238,10 +238,14 @@ class UserAccessExpiration
 	{
 		$options = get_option( self::option_name );
 		$expire_date = date( 'Y-m-d H:i:s', strtotime( '+'.$options['number_days'].'days' ) );
+		$reg_date = date( 'Y-m-d H:i:s', date('U') );
 
 		add_user_meta( $user_id, self::user_meta, 'false' );
 		add_user_meta( $user_id, self::user_meta_expire_date, ''.$expire_date );
 		add_user_meta( $user_id, self::user_meta_expire_count, '0' );
+
+		add_user_meta( $user_id, self::user_meta_expire_welcome_messages_count, '0' );
+		add_user_meta( $user_id, self::user_meta_reg_date, ''.$reg_date );
 	}
 	
 	/** 
