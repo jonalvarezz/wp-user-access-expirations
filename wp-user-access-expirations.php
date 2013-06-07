@@ -102,7 +102,7 @@ class UserAccessExpiration
 		);
 
 		// Cron daily notify messages
-		wp_schedule_event( time(), 'daily', 'notify_expire_users_cron');
+		wp_schedule_event( strtotime( '+1 hours' ), 'daily', 'notify_expire_users_cron');
 	}
 	
 	/** 
