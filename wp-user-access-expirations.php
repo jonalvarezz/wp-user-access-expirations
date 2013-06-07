@@ -633,8 +633,8 @@ class UserAccessExpiration
 		<h3>User Access Expiration</h3>
 		<table class="form-table">			
 		<tr>
-			<th>Registered date: </th>
-			<td><?php echo get_the_author_meta( 'user_registered', $user->ID ); ?></td>
+			<th>Membership date: </th>
+			<td><?php echo get_the_author_meta( self::user_meta_reg_date, $user->ID ); ?></td>
 		</tr>
 		<tr>			
 			<th><label for="user-access">Does this person have access to the site?</label></th>
