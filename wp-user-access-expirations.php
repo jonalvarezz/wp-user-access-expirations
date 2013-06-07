@@ -121,7 +121,7 @@ class UserAccessExpiration
 		$headers = 'From: Comunicaciones Invertir Mejor <comunicaciones@invertirmejor.com>' . "\r\n";
 		
 		// Expire users
-		$admin_message .= "<strong>Expire Users Notification</strong>\n";
+		$admin_message .= "Expire Users Notification\n";
 		$range1 = date( 'Y-m-d H:i:s', date('U') );
 		$range2 = date( 'Y-m-d H:i:s', strtotime( '+'.$options['notify_days'].' days' ) );
 		$admin_message .= "\n[Range: ". $range1 . " to " . $range2 . "]\nUsers:\n";
@@ -130,7 +130,7 @@ class UserAccessExpiration
 		$admin_message .= self::send_mails( $users, $headers, $options['notify_subject'], $options['notify_text'], self::user_meta_expire_count);
 		
 		// Welcome message
-		$admin_message .= "\n\n<strong>Post User-Registration Notification</strong>\n";
+		$admin_message .= "\n\nPost User-Registration Notification\n";
 		$range1_temp = 4 + $options['welcome_days']; // The range is 4 since the shedule event is executed twice weekly (once 3.5 days), so 4 prevent for lost users notification
 		$range1 = date( 'Y-m-d H:i:s', strtotime( '-'.$range1_temp.' days' )  );
 		$range2 = date( 'Y-m-d H:i:s', strtotime( '-'.$options['welcome_days'].' days' ) );
