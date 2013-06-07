@@ -116,54 +116,30 @@ class UserAccessExpiration
 	public function do_cron()
 	{
 		$options = get_option( self::option_name );
-		$subject = $options['notify_subject'];
+		$admin_message = '';
 		$headers = 'From: Comunicaciones Invertir Mejor <comunicaciones@invertirmejor.com>' . "\r\n";
-		$message = $options['notify_text'];
+		
+		// Expire users
+		$admin_message .= "<strong>Expire Users Notification</strong>\n";
 		$range1 = date( 'Y-m-d H:i:s', date('U') );
 		$range2 = date( 'Y-m-d H:i:s', strtotime( '+'.$options['notify_days'].' days' ) );
+		$admin_message .= "\n[Range: ". $range1 . " to " . $range2 . "]\nUsers:\n";
 
-		$args = array(
-			'orderby' => 'registered',
-			'order' => 'ASC',
-			'fields' => array( 'ID', 'user_registered', 'user_email'),
-			'meta_query' => array(
-				'relation' => 'AND',
-				array(
-					'key' => self::user_meta_expire_date,
-					'value' => array($range1,$range2),
-					'type' => 'DATETIME',
-					'compare' => 'BETWEEN'
-				),
-				array(
-					'key' => self::user_meta_expire_count,
-					'value' => '1',
-					'type' => 'numeric',
-					'compare' => '<'
-				)
-			)
-		);
-		$users = get_users( $args );
-				
-		$user_notified = array();
-		$user_notified_fail = array();
-		foreach ( $users as $user ) {
-			if( wp_mail( $user->user_email, $subject, $message, $headers ) ) {
-				update_user_meta( $user->ID, self::user_meta_expire_count, '1' );
-				$user_notified[] = $user->user_email;
-			}
-			else {
-				$user_notified_fail[] = $user->user_email;
-			}
-		}
+		$users = self::get_users_by_range( self::user_meta_expire_date, array( $range1, $range2 ), self::user_meta_expire_count );
+		$admin_message .= self::send_mails( $users, $headers, $options['notify_subject'], $options['notify_text'], self::user_meta_expire_count);
+		
+		// Welcome message
+		$admin_message .= "\n\n<strong>Post User-Registration Notification</strong>\n";
+		$range1_temp = 4 + $options['welcome_days']; // The range is 4 since the shedule event is executed twice weekly (once 3.5 days), so 4 prevent for lost users notification
+		$range1 = date( 'Y-m-d H:i:s', strtotime( '-'.$range1_temp.' days' )  );
+		$range2 = date( 'Y-m-d H:i:s', strtotime( '-'.$options['welcome_days'].' days' ) );
+		$admin_message .= "\n[Range: ". $range1 . " to " . $range2 . "]\nUsers:\n";
 
-		// Report to admin
-		$message = "\n[Range: ". $range1 . " to " . $range2 . "]\nUsers:\n";
-		$message.= "The following " . count($user_notified) . " messages has been sent successfully:\n";
-		$message.= implode(',', $user_notified);
-		$message.= "\n\n";
-		$message.= "The following " . count($user_notified_fail) . " messages fail on sent:\n";
-		$message.= implode(',', $user_notified_fail);
-		wp_mail( get_bloginfo('admin_email'), '[User Expire] Mensajes Enviados el Día de Hoy', $message, $headers );
+		$users = self::get_users_by_range( self::user_meta_reg_date, array( $range1, $range2 ), self::user_meta_expire_welcome_messages_count );
+		$admin_message .= self::send_mails( $users, $headers, $options['welcome_subject'], $options['welcome_text'], self::user_meta_expire_welcome_messages_count);
+
+		// Report to admin		
+		wp_mail( get_bloginfo('admin_email'), '[User Expire] Mensajes Enviados el Día de Hoy', $admin_message, $headers );
 	}
 
 	/** 
