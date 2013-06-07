@@ -167,6 +167,86 @@ class UserAccessExpiration
 	}
 
 	/** 
+	 *	Get Users By Range
+	 *
+	 *	returns the result of database query of the users in the range given 
+	 *	in relation the meta value expire date, also receive a second meta data
+	 *	value to reduce db queries.
+	 *
+	 *	@author		jonalvarezz
+	 *	@since		0.3
+	 *
+	 *	@param	mixed 	Date ranges.
+	 *	@param 	string 	Meta value 
+	 */
+	public function get_users_by_range( $metaDateCompare, $range, $metaCount )
+	{
+		$args = array(
+			'orderby' => 'registered',
+			'order' => 'ASC',
+			'fields' => array( 'ID', 'user_registered', 'user_email'),
+			'meta_query' => array(
+				'relation' => 'AND',
+				array(
+					'key' => $metaDateCompare,
+					'value' => $range,
+					'type' => 'DATETIME',
+					'compare' => 'BETWEEN'
+				),
+				array(
+					'key' => $metaCount,
+					'value' => '1',
+					'type' => 'numeric',
+					'compare' => '<'
+				)
+			)
+		);
+
+		return get_users( $args );
+	}
+
+	/** 
+	 *	Send mails and report
+	 *
+	 *	Sends mail to given users and given parameters and return 
+	 *	the report of succesfull mails or failures
+	 *
+	 *	@author		jonalvarezz
+	 *	@since		0.3
+	 *
+	 *	@param	mixed 	$users: array of user. each user must have user_email, ID, and user_email keys and values
+	 *	@param 	string 	$header: mail headers
+	 * 	@param 	string 	$subject
+	 * 	@param 	string 	$message
+	 * 	@param 	[string $metaCount] : meta to update to keep control in sent messages
+	 */
+	public function send_mails( $users, $headers, $subject, $message, $metaCount = '')
+	{				
+		$user_notified = array();
+		$user_notified_fail = array();
+		foreach ( $users as $user ) {			
+			if( wp_mail( $user->user_email, $subject, $message, $headers ) ) {
+				if( $metaCount != '' )
+					update_user_meta( $user->ID, $metaCount, '1' );
+
+				$user_notified[] = $user->user_email;
+			}
+			else {
+				$user_notified_fail[] = $user->user_email;
+			}
+		}
+
+		// Report to admin
+		$report = "The following " . count($user_notified) . " messages has been sent successfully:\n";
+		$report.= implode(', ', $user_notified);
+		$report.= "\n\n";
+		$report.= "The following " . count($user_notified_fail) . " messages fail on sent:\n";
+		$report.= implode(',', $user_notified_fail);
+
+		return $report;
+	}
+
+	/** 
 	 *	Set Expiration Timer
 	 *
 	 *	Adds a custom user meta key of user_access_expired when a new user is registered.
