@@ -18,8 +18,12 @@ class UserAccessExpiration
 	CONST user_meta = 'uae_user_access_expired';
 	// custom user meta key to handle operations with expired dates
 	CONST user_meta_expire_date = 'uae_user_access_expired_date';
+	// custom user meta key to control the number of welcome notifications sent
+	CONST user_meta_reg_date = 'uae_user_acces_register_date';
 	// custom user meta key to control the number of notifications sent
 	CONST user_meta_expire_count = 'uae_user_notification_count';
+	// custom user meta key to control the number of welcome notifications sent
+	CONST user_meta_expire_welcome_messages_count = 'uae_user_welcome_notification_count';
 
 	// hook into user registration and authentication
 	public function __construct()
@@ -65,13 +69,22 @@ class UserAccessExpiration
 			// add the custom user meta to the wp_usermeta table
 			update_user_meta( $user->ID, self::user_meta, 'false' );
 
+			// Copy user reg date to query easyly later
+			if ( get_user_meta($user->ID, self::user_meta_reg_date, true ) == '' )
+				update_user_meta( $user->ID, self::user_meta_reg_date, ''.$user->user_registered );
+
 			// add expire date to get easily from a WP_User_Query
 			$reg_date = strtotime( $user->user_registered );
 			$expire_date = date( 'Y-m-d H:i:s', strtotime( '+'.$options['number_days'].'days', $reg_date ) );
 			update_user_meta( $user->ID, self::user_meta_expire_date, ''.$expire_date );
 
-			// initialice notification count
-			update_user_meta( $user->ID, self::user_meta_expire_count, '0' );
+			// initialice notifications counts
+			// to avoid multiple notification sent, the count is set to 0 only if the meta value doesn't exist
+			if ( get_user_meta($user->ID, self::user_meta_expire_count, true ) == '' )
+				update_user_meta( $user->ID, self::user_meta_expire_count, '0' );
+
+			if ( get_user_meta($user->ID, self::user_meta_expire_welcome_messages_count, true ) == '' )
+				update_user_meta( $user->ID, self::user_meta_expire_welcome_messages_count, '0' );
 		}
 		
 		// add option with base information
