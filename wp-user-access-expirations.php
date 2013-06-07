@@ -67,7 +67,8 @@ class UserAccessExpiration
 		foreach ( $users as $user )
 		{
 			// add the custom user meta to the wp_usermeta table
-			update_user_meta( $user->ID, self::user_meta, 'false' );
+			if ( get_user_meta($user->ID, self::user_meta, true ) == '' )
+				update_user_meta( $user->ID, self::user_meta, 'false' );
 
 			// Copy user reg date to query easyly later
 			if ( get_user_meta($user->ID, self::user_meta_reg_date, true ) == '' )
