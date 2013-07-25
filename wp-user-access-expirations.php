@@ -254,11 +254,13 @@ class UserAccessExpiration
 	 *	Takes the credentials entered by the user on the login form and grabs the user_id
 	 *	from the login name. Gets the value of the user meta field set up by the 
 	 *	set_expiration_timer method. Also gets the user registered date/time. If the specified 
-	 *	time frame has elapsed then the user is denied access.
+	 *	time frame has elapsed then the user is denied access. Check expiration with registared
+	 *	date custom meta since 0.6
 	 *
 	 *	@author		Nate Jacobs
 	 *	@since		0.1
 	 *	@updated	0.4
+	 *	@updated	0.6 
 	 *
 	 *	@param	string	$user
 	 *	@param	string	$user_login
@@ -282,7 +284,7 @@ class UserAccessExpiration
 			// get the custom user meta defined earlier
 			$access_expiration = get_user_meta( $user_info->ID, self::user_meta, true );
 			// get the user registered time
-			$register_time = strtotime( $user_info->user_registered );
+			$register_time = strtotime( get_user_meta( $user_info->ID, self::user_meta_reg_date, true ) );
 			// get the date in unix time that is the specified number of elapsed days from the registered date
 			$expire_time = strtotime( '+'.$options['number_days'].'days', $register_time );
 			
