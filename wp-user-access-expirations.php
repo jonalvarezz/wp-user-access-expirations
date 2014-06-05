@@ -4,7 +4,7 @@
  *	Plugin Name: WP User Access Expirations
  *	Plugin URI: https://github.com/jonalvarezz/wp-user-access-expirations
  *	Description: Expires a user's access to a site after a specified number of days based upon the registration date. The administrator can restore a user's access from the user's profile page.
- *	Version: 0.5
+ *	Version: 0.6
  *	License: GPL V2
  *	Author: Jonathan ALvarez <@jonalvarezz> - Original by Nate Jacobs <nate@natejacobs.org>
  *	Author URI: https://github.com/jonalvarezz
