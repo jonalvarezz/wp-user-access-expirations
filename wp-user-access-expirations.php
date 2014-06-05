@@ -119,6 +119,9 @@ class UserAccessExpiration
 		$options = get_option( self::option_name );
 		$admin_message = '';
 		$headers = 'From: Comunicaciones Invertir Mejor <comunicaciones@invertirmejor.com>' . "\r\n";
+		$headers .= "Reply-To: comunicaciones@invertirmejor.com" . "\r\n";
+		$headers .= "MIME-Version: 1.0\r\n";
+		$headers .= "Content-Type: text/html; charset=utf-8\r\n";
 		
 		// Expire users
 		$admin_message .= "Expire Users Notification\n";
