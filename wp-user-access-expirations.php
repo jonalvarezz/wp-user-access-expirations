@@ -124,24 +124,26 @@ class UserAccessExpiration
 		$headers .= "Content-Type: text/html; charset=utf-8\r\n";
 		
 		// Expire users
-		$admin_message .= "Expire Users Notification\n";
+		$admin_message .= "<h1>Expire Users Notification</h1>";
 		$range1 = date( 'Y-m-d H:i:s', date('U') );
 		$range2 = date( 'Y-m-d H:i:s', strtotime( '+'.$options['notify_days'].' days' ) );
-		$admin_message .= "\n[Range: ". $range1 . " to " . $range2 . "]\nUsers:\n";
+		$admin_message .= "<p><strong>[Range: ". $range1 . " to " . $range2 . "]</strong></p><p>Users:<br>";
 
 		$users = self::get_users_by_range( self::user_meta_expire_date, array( $range1, $range2 ), self::user_meta_expire_count );
 		$admin_message .= self::send_mails( $users, $headers, $options['notify_subject'], $options['notify_text'], self::user_meta_expire_count);
 		
 		// Welcome message
-		$admin_message .= "\n\nPost User-Registration Notification\n";
+		$admin_message .= "</p><h1>Post User-Registration Notification</h1>";
 		$range1_temp = 4 + $options['welcome_days']; // The range is 4 since the shedule event is executed twice weekly (once 3.5 days), so 4 prevent for lost users notification
 		$range1 = date( 'Y-m-d H:i:s', strtotime( '-'.$range1_temp.' days' )  );
 		$range2 = date( 'Y-m-d H:i:s', strtotime( '-'.$options['welcome_days'].' days' ) );
-		$admin_message .= "\n[Range: ". $range1 . " to " . $range2 . "]\nUsers:\n";
+		$admin_message .= "<p><strong>[Range: ". $range1 . " to " . $range2 . "]</strong></p><p>Users:<br>";
 
 		$users = self::get_users_by_range( self::user_meta_reg_date, array( $range1, $range2 ), self::user_meta_expire_welcome_messages_count );
 		$admin_message .= self::send_mails( $users, $headers, $options['welcome_subject'], $options['welcome_text'], self::user_meta_expire_welcome_messages_count);
 
+		$admin_message .= '</p>';
+		
 		// Report to admin		
 		wp_mail( get_bloginfo('admin_email'), '[User Expire] Mensajes Enviados el Día de Hoy', $admin_message, $headers );
 	}
