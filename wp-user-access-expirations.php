@@ -9,10 +9,10 @@
  *	Author: Jonathan ALvarez <@jonalvarezz> - Original by Nate Jacobs <nate@natejacobs.org>
  *	Author URI: https://github.com/jonalvarezz
  */
- 
+
 class UserAccessExpiration
-{	
-	// the plugin options meta key	
+{
+	// the plugin options meta key
 	CONST option_name = "user_access_expire_options";
 	// the custom user meta key
 	CONST user_meta = 'uae_user_access_expired';
@@ -42,10 +42,10 @@ class UserAccessExpiration
 		add_action( 'personal_options_update', array( __CLASS__, 'save_user_profile_fields' ) );
 		add_action( 'edit_user_profile_update', array( __CLASS__, 'save_user_profile_fields' ) );
 
-		register_deactivation_hook( __FILE__, array( __CLASS__, 'desactivation') );	
+		register_deactivation_hook( __FILE__, array( __CLASS__, 'desactivation') );
 	}
-	
-	/** 
+
+	/**
 	 *	Activation
 	 *
 	 *	Upon plugin activation create a custom user meta key of user_access_expired
@@ -87,11 +87,11 @@ class UserAccessExpiration
 			if ( get_user_meta($user->ID, self::user_meta_expire_welcome_messages_count, true ) == '' )
 				update_user_meta( $user->ID, self::user_meta_expire_welcome_messages_count, '0' );
 		}
-		
+
 		// add option with base information
-		add_option( 
-			self::option_name, 
-			array( 
+		add_option(
+			self::option_name,
+			array(
 				'error_message' => 'To gain access please contact us.',
 				'number_days' => '30',
 				'notify_days' => '5',
@@ -105,8 +105,8 @@ class UserAccessExpiration
 		// Cron daily notify messages
 		wp_schedule_event( strtotime( '+1 hours' ), 'daily', 'notify_expire_users_cron');
 	}
-	
-	/** 
+
+	/**
 	 *	do_cron
 	 *
 	 *	Send notification message to users.
@@ -122,7 +122,7 @@ class UserAccessExpiration
 		$headers .= "Reply-To: comunicaciones@invertirmejor.com" . "\r\n";
 		$headers .= "MIME-Version: 1.0\r\n";
 		$headers .= "Content-Type: text/html; charset=utf-8\r\n";
-		
+
 		// Expire users
 		$admin_message .= "<h1>Expire Users Notification</h1>";
 		$range1 = date( 'Y-m-d H:i:s', date('U') );
@@ -131,7 +131,7 @@ class UserAccessExpiration
 
 		$users = self::get_users_by_range( self::user_meta_expire_date, array( $range1, $range2 ), self::user_meta_expire_count );
 		$admin_message .= self::send_mails( $users, $headers, $options['notify_subject'], $options['notify_text'], self::user_meta_expire_count);
-		
+
 		// Welcome message
 		$admin_message .= "</p><h1>Post User-Registration Notification</h1>";
 		$range1_temp = 4 + $options['welcome_days']; // The range is 4 since the shedule event is executed twice weekly (once 3.5 days), so 4 prevent for lost users notification
@@ -143,15 +143,15 @@ class UserAccessExpiration
 		$admin_message .= self::send_mails( $users, $headers, $options['welcome_subject'], $options['welcome_text'], self::user_meta_expire_welcome_messages_count);
 
 		$admin_message .= '</p>';
-		
-		// Report to admin		
+
+		// Report to admin
 		wp_mail( get_bloginfo('admin_email'), '[User Expire] Mensajes Enviados el Día de Hoy', $admin_message, $headers );
 	}
 
-	/** 
+	/**
 	 *	Get Users By Range
 	 *
-	 *	returns the result of database query of the users in the range given 
+	 *	returns the result of database query of the users in the range given
 	 *	in relation the meta value expire date, also receive a second meta data
 	 *	value to reduce db queries.
 	 *
@@ -159,7 +159,7 @@ class UserAccessExpiration
 	 *	@since		0.3
 	 *
 	 *	@param	mixed 	Date ranges.
-	 *	@param 	string 	Meta value 
+	 *	@param 	string 	Meta value
 	 */
 	public function get_users_by_range( $metaDateCompare, $range, $metaCount )
 	{
@@ -187,10 +187,10 @@ class UserAccessExpiration
 		return get_users( $args );
 	}
 
-	/** 
+	/**
 	 *	Send mails and report
 	 *
-	 *	Sends mail to given users and given parameters and return 
+	 *	Sends mail to given users and given parameters and return
 	 *	the report of succesfull mails or failures
 	 *
 	 *	@author		jonalvarezz
@@ -203,10 +203,10 @@ class UserAccessExpiration
 	 * 	@param 	[string $metaCount] : meta to update to keep control in sent messages
 	 */
 	public function send_mails( $users, $headers, $subject, $message, $metaCount = '')
-	{				
+	{
 		$user_notified = array();
 		$user_notified_fail = array();
-		foreach ( $users as $user ) {			
+		foreach ( $users as $user ) {
 			if( wp_mail( $user->user_email, $subject, $message, $headers ) ) {
 				if( $metaCount != '' )
 					update_user_meta( $user->ID, $metaCount, '1' );
@@ -228,7 +228,7 @@ class UserAccessExpiration
 		return $report;
 	}
 
-	/** 
+	/**
 	 *	Set Expiration Timer
 	 *
 	 *	Adds a custom user meta key of user_access_expired when a new user is registered.
@@ -252,25 +252,25 @@ class UserAccessExpiration
 		add_user_meta( $user_id, self::user_meta_expire_welcome_messages_count, '0' );
 		add_user_meta( $user_id, self::user_meta_reg_date, ''.$reg_date );
 	}
-	
-	/** 
+
+	/**
 	 *	Check User Access Status
 	 *
 	 *	Takes the credentials entered by the user on the login form and grabs the user_id
-	 *	from the login name. Gets the value of the user meta field set up by the 
-	 *	set_expiration_timer method. Also gets the user registered date/time. If the specified 
+	 *	from the login name. Gets the value of the user meta field set up by the
+	 *	set_expiration_timer method. Also gets the user registered date/time. If the specified
 	 *	time frame has elapsed then the user is denied access. Check expiration with registared
 	 *	date custom meta since 0.6
 	 *
 	 *	@author		Nate Jacobs
 	 *	@since		0.1
 	 *	@updated	0.4
-	 *	@updated	0.6 
+	 *	@updated	0.6
 	 *
 	 *	@param	string	$user
 	 *	@param	string	$user_login
 	 *	@param	string	$password
-	 *	@return	mixed	$user ( either an error or valid user )	
+	 *	@return	mixed	$user ( either an error or valid user )
 	 */
 	public function check_user_access_status( $user, $user_login, $password )
 	{
@@ -280,7 +280,7 @@ class UserAccessExpiration
 		$expire_time = '';
 		$new_time = '';
 		$expired = '';
-		
+
 		// if the user has entered something in the user name box
 		if ( $user_info )
 		{
@@ -292,7 +292,7 @@ class UserAccessExpiration
 			$register_time = strtotime( get_user_meta( $user_info->ID, self::user_meta_reg_date, true ) );
 			// get the date in unix time that is the specified number of elapsed days from the registered date
 			$expire_time = strtotime( '+'.$options['number_days'].'days', $register_time );
-			
+
 			if( $expire_time < date( 'U' ) )
 			{
 				if( user_can($user_info->ID, 'manage_options') )
@@ -305,12 +305,12 @@ class UserAccessExpiration
 				}
 			}
 		}
-		
+
 		if ( empty( $user_login ) || empty( $password ) )
 		{
 			if ( empty( $username ) )
 				$user = new WP_Error('empty_username', __('<strong>ERROR</strong>: The username field is empty.'));
-	
+
 			if ( empty( $password ) )
 				$user = new WP_Error('empty_password', __('<strong>ERROR</strong>: The password field is empty.'));
 		}
@@ -327,11 +327,11 @@ class UserAccessExpiration
 				// deny access to login and send back to login page
 				remove_action( 'authenticate', 'wp_authenticate_username_password', 20 );
 			}
-		}	
+		}
 		return $user;
 	}
-	
-	/** 
+
+	/**
 	 *	Add Submenu Page
 	 *
 	 *	Adds a submenu page to settings page for the user entered settings.
@@ -350,8 +350,8 @@ class UserAccessExpiration
 			array( __CLASS__, 'user_access_expire_settings' )
 		);
 	}
-	
-	/** 
+
+	/**
 	 *	Initiate Options
 	 *
 	 *	Create the options needed for the settings API.
@@ -361,7 +361,7 @@ class UserAccessExpiration
 	 */
 	public function options_init()
 	{
-		register_setting( 
+		register_setting(
 			'user_access_expire_options',
 			'user_access_expire_options',
 			array( __CLASS__, 'user_access_expire_options_validate' )
@@ -372,7 +372,7 @@ class UserAccessExpiration
 			array( __CLASS__, 'primary_section_text' ),
 			__FILE__
 		);
-		
+
 		$settings_fields = array(
 			array(
 				'id' => 'number_of_days',
@@ -429,7 +429,7 @@ class UserAccessExpiration
 				'section' => 'primary_section'
 			),
 		);
-		
+
 		foreach( $settings_fields as $settings )
 		{
 			add_settings_field(
@@ -441,8 +441,8 @@ class UserAccessExpiration
 			);
 		}
 	}
-	
-	/** 
+
+	/**
 	 *	Primary Section Text
 	 *
 	 *	Not used at this point, but method provided for potential future use.
@@ -452,10 +452,10 @@ class UserAccessExpiration
 	 */
 	public function primary_section_text()
 	{
-		
+
 	}
-	
-	/** 
+
+	/**
 	 *	Number of Days to Expire
 	 *
 	 *	Provides field to allow administrators to set how many days a user's access
@@ -471,9 +471,9 @@ class UserAccessExpiration
 		echo "<input id='number_of_days' name='user_access_expire_options[number_days]' size='10' type='text' value='{$options['number_days']}' />";
 		echo "<br>How many days after registration should a user have access for?";
 	}
-	
-	/** 
-	 *	Error Message 
+
+	/**
+	 *	Error Message
 	 *
 	 *	Provides field to allow administrators to set the error message a user sees
 	 *	once their access has expired.
@@ -486,10 +486,10 @@ class UserAccessExpiration
 		$options = get_option( self::option_name );
 		echo "<input id='error_message' name='user_access_expire_options[error_message]' size='75' type='text' value='{$options['error_message']}' />";
 		echo "<br>This message is displayed to a user once their access is denied.";
-		echo "<br><b>Example:</b> To gain access please contact us at myemail@myexample.com.";	
+		echo "<br><b>Example:</b> To gain access please contact us at myemail@myexample.com.";
 	}
 
-	/** 
+	/**
 	 *	Expire Notify
 	 *
 	 *	Provides fields to allow administrators to set a the amount of days and the text within a expire
@@ -500,9 +500,9 @@ class UserAccessExpiration
 	 */
 	public function setting_notify_days()
 	{
-		$options = get_option( self::option_name );		
+		$options = get_option( self::option_name );
 		echo "<input id='notify_days' name='user_access_expire_options[notify_days]' type='number' size='10' value='{$options['notify_days']}' />";
-		echo "<span> days left.</span><br>";	
+		echo "<span> days left.</span><br>";
 		echo "<br>How many days left a notification message should be sent to the user";
 	}
 	public function setting_notify_subject()
@@ -515,10 +515,10 @@ class UserAccessExpiration
 	{
 		$options = get_option( self::option_name );
 		echo "<textarea id='notify_text' name='user_access_expire_options[notify_text]' rows='6' cols='75'>{$options['notify_text']}</textarea>";
-		echo "<br>This is the message the user will receive";	
+		echo "<br>This is the message the user will receive";
 	}
 
-	/** 
+	/**
 	 *	Welcome Notify
 	 *
 	 *	Provides fields to allow administrators to set a the amount of days and the text within a welcome
@@ -535,9 +535,9 @@ class UserAccessExpiration
 	}
 	public function setting_welcome_days()
 	{
-		$options = get_option( self::option_name );		
+		$options = get_option( self::option_name );
 		echo "<input id='welcome_days' name='user_access_expire_options[welcome_days]' type='number' size='10' value='{$options['welcome_days']}' />";
-		echo "<span> days after registration</span><br>";	
+		echo "<span> days after registration</span><br>";
 		echo "<br>Number of days after registration a user should receive the welcome message";
 	}
 	public function setting_welcome_subject()
@@ -550,10 +550,10 @@ class UserAccessExpiration
 	{
 		$options = get_option( self::option_name );
 		echo "<textarea id='welcome_text' name='user_access_expire_options[welcome_text]' rows='6' cols='75'>{$options['welcome_text']}</textarea>";
-		echo "<br>This is the message the user will receive";	
+		echo "<br>This is the message the user will receive";
 	}
-	
-	/** 
+
+	/**
 	 *	Validate and Clean Options
 	 *
 	 *	Takes the values entered by the user and validates and cleans the input
@@ -572,17 +572,17 @@ class UserAccessExpiration
 		// Expiry notification
 		$valid_input['notify_text'] = $input['notify_text'];
 		$valid_input['notify_subject'] =  wp_filter_nohtml_kses( $input['notify_subject'] );
-		$input['notify_days'] = trim($input['notify_days']);		
+		$input['notify_days'] = trim($input['notify_days']);
 		$valid_input['notify_days'] = ( is_numeric( $input['notify_days'] ) ) ? $input['notify_days'] : '';
 
 		//Welcome notification
 		$valid_input['welcome_activate'] = $input['welcome_activate'];
 		$valid_input['welcome_text'] = $input['welcome_text'];
 		$valid_input['welcome_subject'] =  wp_filter_nohtml_kses( $input['welcome_subject'] );
-		$input['welcome_days'] = trim($input['welcome_days']);		
+		$input['welcome_days'] = trim($input['welcome_days']);
 		$valid_input['welcome_days'] = ( is_numeric( $input['welcome_days'] ) ) ? $input['welcome_days'] : '';
-		
-		
+
+
 		if ( is_numeric( $input['number_days'] ) == FALSE )
 		{
 			add_settings_error(
@@ -594,8 +594,8 @@ class UserAccessExpiration
 		}
 		return $valid_input;
 	}
-	
-	/** 
+
+	/**
 	 *	Add Content for Settings Page
 	 *
 	 *	Create the settings page for the plugin.
@@ -620,12 +620,12 @@ class UserAccessExpiration
 		</div>
 		<?php
 	}
-	
-	/** 
+
+	/**
 	 *	Add User Profile Field
 	 *
 	 *	Adds an extra field to the user profile page. Allows an administrator
-	 *	to change a specific user's access. 
+	 *	to change a specific user's access.
 	 *
 	 *	@author		Nate Jacobs
 	 *	@since		0.2
@@ -638,12 +638,12 @@ class UserAccessExpiration
 		{
 		?>
 		<h3>User Access Expiration</h3>
-		<table class="form-table">			
+		<table class="form-table">
 		<tr>
 			<th>Membership date: </th>
 			<td><?php echo get_the_author_meta( self::user_meta_reg_date, $user->ID ); ?></td>
 		</tr>
-		<tr>			
+		<tr>
 			<th><label for="user-access">Does this person have access to the site?</label></th>
 			<td>
 				<?php $access = get_the_author_meta( self::user_meta, $user->ID ); ?>
@@ -657,8 +657,8 @@ class UserAccessExpiration
 		<?php
 		}
 	 }
-	
-	/** 
+
+	/**
 	  *	Save User Profile Fields
 	  *
 	  *	Saves the access value for the user.
@@ -667,17 +667,17 @@ class UserAccessExpiration
 	  *	@since		0.2
 	  *
 	  *	@param	int	$user_id
-	  */ 
+	  */
 	public function save_user_profile_fields( $user_id )
 	{
 		if( !current_user_can( 'manage_options', $user_id ) )
 			return false;
-		
+
 		update_user_meta( $user_id, self::user_meta, $_POST['user-access'] );
 
 	}
 
-	/** 
+	/**
 	  *	Desactivation
 	  *
 	  *	Just clear the sheduled cron
@@ -685,7 +685,7 @@ class UserAccessExpiration
 	  *	@author		jonalvarezz
 	  *	@since		0.2
 	  *
-	  */ 
+	  */
 	public function desactivation() {
 		wp_clear_scheduled_hook('notify_expire_users_cron');
 	}
