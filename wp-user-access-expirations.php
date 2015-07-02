@@ -56,7 +56,7 @@ class UserAccessExpiration
 	 *	@since		0.1
 	 *	@update		0.2 (add_option)
 	 */
-	public function activation()
+	public static function activation()
 	{
 		// get settings
 		$options = get_option( self::option_name );
@@ -114,7 +114,7 @@ class UserAccessExpiration
 	 *	@author		jonalvarezz
 	 *	@since		0.2
 	 */
-	public function do_cron()
+	public static function do_cron()
 	{
 		$options = get_option( self::option_name );
 		$admin_message = '';
@@ -161,7 +161,7 @@ class UserAccessExpiration
 	 *	@param	mixed 	Date ranges.
 	 *	@param 	string 	Meta value
 	 */
-	public function get_users_by_range( $metaDateCompare, $range, $metaCount )
+	public static function get_users_by_range( $metaDateCompare, $range, $metaCount )
 	{
 		$args = array(
 			'orderby' => 'registered',
@@ -202,7 +202,7 @@ class UserAccessExpiration
 	 * 	@param 	string 	$message
 	 * 	@param 	[string $metaCount] : meta to update to keep control in sent messages
 	 */
-	public function send_mails( $users, $headers, $subject, $message, $metaCount = '')
+	public static function send_mails( $users, $headers, $subject, $message, $metaCount = '')
 	{
 		$user_notified = array();
 		$user_notified_fail = array();
@@ -239,7 +239,7 @@ class UserAccessExpiration
 	 *
 	 *	@param	int	$user_id
 	 */
-	public function set_expiration_timer( $user_id )
+	public static function set_expiration_timer( $user_id )
 	{
 		$options = get_option( self::option_name );
 		$expire_date = date( 'Y-m-d H:i:s', strtotime( '+'.$options['number_days'].'days' ) );
@@ -272,7 +272,7 @@ class UserAccessExpiration
 	 *	@param	string	$password
 	 *	@return	mixed	$user ( either an error or valid user )
 	 */
-	public function check_user_access_status( $user, $user_login, $password )
+	public static function check_user_access_status( $user, $user_login, $password )
 	{
 		// get user data by login
 		$user_info = get_user_by( 'login', $user_login );
@@ -339,7 +339,7 @@ class UserAccessExpiration
 	 *	@author		Nate Jacobs
 	 *	@since		0.2
 	 */
-	public function add_user_expire_submenu()
+	public static function add_user_expire_submenu()
 	{
 		add_submenu_page(
 			'options-general.php',
@@ -359,7 +359,7 @@ class UserAccessExpiration
 	 *	@author		Nate Jacobs
 	 *	@since		0.2
 	 */
-	public function options_init()
+	public static function options_init()
 	{
 		register_setting(
 			'user_access_expire_options',
@@ -450,7 +450,7 @@ class UserAccessExpiration
 	 *	@author		Nate Jacobs
 	 *	@since		0.2
 	 */
-	public function primary_section_text()
+	public static function primary_section_text()
 	{
 
 	}
@@ -464,7 +464,7 @@ class UserAccessExpiration
 	 *	@author		Nate Jacobs
 	 *	@since		0.2
 	 */
-	public function setting_number_days()
+	public static function setting_number_days()
 	{
 		$options = get_option( self::option_name );
 		//{$this->get_settings( 'user-access-expiration' )}
@@ -481,7 +481,7 @@ class UserAccessExpiration
 	 *	@author		Nate Jacobs
 	 *	@since		0.2
 	 */
-	public function setting_error_message()
+	public static function setting_error_message()
 	{
 		$options = get_option( self::option_name );
 		echo "<input id='error_message' name='user_access_expire_options[error_message]' size='75' type='text' value='{$options['error_message']}' />";
@@ -498,20 +498,20 @@ class UserAccessExpiration
 	 *	@author		jonalvarezz
 	 *	@since		0.2
 	 */
-	public function setting_notify_days()
+	public static function setting_notify_days()
 	{
 		$options = get_option( self::option_name );
 		echo "<input id='notify_days' name='user_access_expire_options[notify_days]' type='number' size='10' value='{$options['notify_days']}' />";
 		echo "<span> days left.</span><br>";
 		echo "<br>How many days left a notification message should be sent to the user";
 	}
-	public function setting_notify_subject()
+	public static function setting_notify_subject()
 	{
 		$options = get_option( self::option_name );
 		echo "<input id='notify_subject' name='user_access_expire_options[notify_subject]' type='text' size='75' value='{$options['notify_subject']}' />";
 		echo "<br>Notify message email header";
 	}
-	public function setting_notify_text()
+	public static function setting_notify_text()
 	{
 		$options = get_option( self::option_name );
 		echo "<textarea id='notify_text' name='user_access_expire_options[notify_text]' rows='6' cols='75'>{$options['notify_text']}</textarea>";
@@ -527,26 +527,26 @@ class UserAccessExpiration
 	 *	@author		jonalvarezz
 	 *	@since		0.3
 	 */
-	public function setting_welcome_activate()
+	public static function setting_welcome_activate()
 	{
 		$options = get_option( self::option_name );
 		$checked = $options['welcome_activate'] == 'on' ? 'checked' : '';
 		echo "<input type='checkbox' ". $checked ." id='welcome_activate' name='user_access_expire_options[welcome_activate]'>";
 	}
-	public function setting_welcome_days()
+	public static function setting_welcome_days()
 	{
 		$options = get_option( self::option_name );
 		echo "<input id='welcome_days' name='user_access_expire_options[welcome_days]' type='number' size='10' value='{$options['welcome_days']}' />";
 		echo "<span> days after registration</span><br>";
 		echo "<br>Number of days after registration a user should receive the welcome message";
 	}
-	public function setting_welcome_subject()
+	public static function setting_welcome_subject()
 	{
 		$options = get_option( self::option_name );
 		echo "<input id='welcome_subject' name='user_access_expire_options[welcome_subject]' type='text' size='75' value='{$options['welcome_subject']}' />";
 		echo "<br>Welcome message email header";
 	}
-	public function setting_welcome_text()
+	public static function setting_welcome_text()
 	{
 		$options = get_option( self::option_name );
 		echo "<textarea id='welcome_text' name='user_access_expire_options[welcome_text]' rows='6' cols='75'>{$options['welcome_text']}</textarea>";
@@ -563,7 +563,7 @@ class UserAccessExpiration
 	 *	@author		Nate Jacobs
 	 *	@since		0.2
 	 */
-	public function user_access_expire_options_validate( $input )
+	public static function user_access_expire_options_validate( $input )
 	{
 		$valid_input['error_message'] =  wp_filter_nohtml_kses( $input['error_message'] );
 		$input['number_days'] =  trim( $input['number_days'] );
@@ -603,7 +603,7 @@ class UserAccessExpiration
 	 *	@author		Nate Jacobs
 	 *	@since		0.2
 	 */
-	public function user_access_expire_settings()
+	public static function user_access_expire_settings()
 	{
 		?>
 		<div class="wrap">
@@ -632,7 +632,7 @@ class UserAccessExpiration
 	 *
 	 *	@param	object	$user
 	 */
-	 public function add_user_profile_fields( $user )
+	 public static function add_user_profile_fields( $user )
 	 {
 	 	if ( current_user_can( 'manage_options', $user->ID ) )
 		{
@@ -668,7 +668,7 @@ class UserAccessExpiration
 	  *
 	  *	@param	int	$user_id
 	  */
-	public function save_user_profile_fields( $user_id )
+	public static function save_user_profile_fields( $user_id )
 	{
 		if( !current_user_can( 'manage_options', $user_id ) )
 			return false;
@@ -686,7 +686,7 @@ class UserAccessExpiration
 	  *	@since		0.2
 	  *
 	  */
-	public function desactivation() {
+	public static function desactivation() {
 		wp_clear_scheduled_hook('notify_expire_users_cron');
 	}
 }
