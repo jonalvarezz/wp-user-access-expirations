@@ -30,7 +30,7 @@ class UserAccessExpiration
 	{
 		// since 0.1
 		add_action( 'user_register', array( __CLASS__, 'set_expiration_timer' ) );
-		add_filter( 'authenticate', array( __CLASS__, 'check_user_access_status' ), 10, 3 );
+		add_filter( 'wp_authenticate_user', array( __CLASS__, 'check_user_access_status' ), 10, 2 );
 		add_action( 'admin_menu', array( __CLASS__, 'add_user_expire_submenu' ) );
 		add_action('admin_init', array( __CLASS__, 'options_init' ));
 		register_activation_hook( __FILE__, array( __CLASS__, 'activation' ) );
@@ -268,66 +268,52 @@ class UserAccessExpiration
 	 *	@updated	0.6
 	 *
 	 *	@param	string	$user
-	 *	@param	string	$user_login
 	 *	@param	string	$password
 	 *	@return	mixed	$user ( either an error or valid user )
 	 */
-	public static function check_user_access_status( $user, $user_login, $password )
+	public static function check_user_access_status( $user, $password )
 	{
-		// get user data by login
-		$user_info = get_user_by( 'login', $user_login );
-		$access_expiration = '';
-		$expire_time = '';
-		$new_time = '';
-		$expired = '';
-
-		// if the user has entered something in the user name box
-		if ( $user_info )
+		// Ignore admins
+		if( user_can($user->ID, 'manage_options') )
 		{
-			// get the plugin options
-			$options = get_option( self::option_name );
-			// get the custom user meta defined earlier
-			$access_expiration = get_user_meta( $user_info->ID, self::user_meta, true );
-			// get the user registered time
-			$register_time = strtotime( get_user_meta( $user_info->ID, self::user_meta_reg_date, true ) );
-			// get the date in unix time that is the specified number of elapsed days from the registered date
-			$expire_time = strtotime( '+'.$options['number_days'].'days', $register_time );
-
-			if( $expire_time < date( 'U' ) )
-			{
-				if( user_can($user_info->ID, 'manage_options') )
-				{
-					$expired = false;
-				}
-				else
-				{
-					$expired = true;
-				}
-			}
+			return $user;
 		}
 
-		if ( empty( $user_login ) || empty( $password ) )
-		{
-			if ( empty( $username ) )
-				$user = new WP_Error('empty_username', __('<strong>ERROR</strong>: The username field is empty.'));
+		// get the plugin options
+		$options = get_option( self::option_name );
+		// get the custom user meta defined earlier
+		$access_expiration = get_user_meta( $user->ID, self::user_meta, true );
+		// get the user registered time
+		$register_time = strtotime( get_user_meta( $user->ID, self::user_meta_reg_date, true ) );
+		// get the date in unix time that is the specified number of elapsed days from the registered date
+		$expire_time = strtotime( '+'.$options['number_days'].'days', $register_time );
+		$expired = false;
 
-			if ( empty( $password ) )
-				$user = new WP_Error('empty_password', __('<strong>ERROR</strong>: The password field is empty.'));
-		}
-		else
+		// Check that user was activated and has a register date to work with
+		if (!$register_time)
 		{
-			// if the custom user meta field is true ( access is expired ) or the current date is more than
-			// the specified number of days past the registered date, deny access
-			if ( $access_expiration == 'true' || $expired )
-			{
-				// change the custom user meta to show access is now denied
-				update_user_meta( $user_info->ID, self::user_meta, 'true' );
-				// register a new error with the error message set above
-				$user = new WP_Error( 'access_denied', __( '<strong>Su acceso al sitio ha expirado</strong><br>'.$options['error_message'] ) );
-				// deny access to login and send back to login page
-				remove_action( 'authenticate', 'wp_authenticate_username_password', 20 );
-			}
+			remove_action( 'authenticate', 'wp_authenticate_username_password', 20 );
+			return new WP_Error( 'access_denied', __( '<strong>Error de activación</strong><br>Por favor <a href="/contactenos">contáctenos</a>.' ) );
 		}
+
+		// Validate
+		if( $expire_time < date( 'U' ) )
+		{
+				$expired = true;
+		}
+
+		// if the custom user meta field is true ( access is expired ) or the current date is more than
+		// the specified number of days past the registered date, deny access
+		if ( $access_expiration == 'true' || $expired )
+		{
+			// change the custom user meta to show access is now denied
+			update_user_meta( $user->ID, self::user_meta, 'true' );
+			// deny access to login and send back to login page
+			remove_action( 'authenticate', 'wp_authenticate_username_password', 20 );
+			// register a new error with the error message set above
+			return new WP_Error( 'access_denied', __( '<strong>Su acceso al sitio ha expirado</strong><br>'.$options['error_message'] ) );
+		}
+
 		return $user;
 	}
 
